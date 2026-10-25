@@ -3,8 +3,9 @@ package ua.edu.ukma.unischeduler.feature.user;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
-import ua.edu.ukma.unischeduler.common.UserRole;
+import ua.edu.ukma.unischeduler.common.enums.UserRole;
 import ua.edu.ukma.unischeduler.feature.speciality.Speciality;
 
 @Entity
@@ -26,12 +27,9 @@ public class User {
 
     @NotBlank
     @Email
-    @Column(name = "email", nullable = false, unique = true)
+    @Size(max = 100)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
-
-    @NotBlank
-    @Column(name = "password", nullable = false)
-    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)

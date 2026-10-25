@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import ua.edu.ukma.unischeduler.common.Semester;
+import ua.edu.ukma.unischeduler.common.enums.Semester;
 import ua.edu.ukma.unischeduler.feature.speciality.Speciality;
 
 import java.util.HashSet;

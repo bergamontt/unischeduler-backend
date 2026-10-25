@@ -37,8 +37,8 @@ public class CourseClass {
 
     @NotBlank
     @Size(max = 100)
-    @Column(name = "auditory", length = 100)
-    private String auditory;
+    @Column(name = "location", length = 100)
+    private String location;
 
     @Column(name = "starts_at", nullable = false)
     private LocalTime startsAt;

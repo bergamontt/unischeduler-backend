@@ -2,6 +2,7 @@ package ua.edu.ukma.unischeduler.feature.speciality;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Entity
@@ -17,6 +18,7 @@ public class Speciality {
     private Long id;
 
     @NotBlank
-    @Column(name = "name", nullable = false)
+    @Size(max = 100)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 }
