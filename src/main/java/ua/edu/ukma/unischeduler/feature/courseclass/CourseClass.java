@@ -32,7 +32,7 @@ public class CourseClass {
 
     @NotBlank
     @Size(max = 50)
-    @Column(name = "group", length = 50)
+    @Column(name = "class_group", length = 50)
     private String group;
 
     @NotBlank
