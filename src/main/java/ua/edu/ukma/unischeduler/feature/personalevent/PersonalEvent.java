@@ -26,11 +26,9 @@ public class PersonalEvent {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @NotBlank
     @Column(name = "location")
     private String location;
 
-    @NotBlank
     @Column(name = "description")
     private String description;
 
