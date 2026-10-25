@@ -1,0 +1,22 @@
+package ua.edu.ukma.unischeduler.feature.speciality;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+
+@Entity
+@Setter
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class Speciality {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    @NotBlank
+    @Column(name = "name", nullable = false)
+    private String name;
+}
