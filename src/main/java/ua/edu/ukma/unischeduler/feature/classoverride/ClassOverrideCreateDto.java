@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Data
@@ -33,11 +34,9 @@ public class ClassOverrideCreateDto {
     @Size(max = 100)
     private String locationOverride;
 
-    private LocalTime startsAtOverride;
+    private LocalDateTime startsAtOverride;
 
-    private LocalTime endsAtOverride;
-
-    private LocalDate dateOverride;
+    private LocalDateTime endsAtOverride;
 
     @Size(max = 200)
     private String description;

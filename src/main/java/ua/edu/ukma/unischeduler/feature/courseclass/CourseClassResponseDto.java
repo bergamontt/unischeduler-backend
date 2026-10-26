@@ -6,8 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ua.edu.ukma.unischeduler.feature.course.Course;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -19,7 +18,6 @@ public class CourseClassResponseDto {
     private String teacher;
     private String group;
     private String location;
-    private LocalTime startsAt;
-    private LocalTime endsAt;
-    private LocalDate date;
+    private LocalDateTime startsAt;
+    private LocalDateTime endsAt;
 }

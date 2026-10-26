@@ -1,9 +1,5 @@
 package ua.edu.ukma.unischeduler.feature.personalevent;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -11,8 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -30,11 +25,8 @@ public class PersonalEventCreateDto {
     private String description;
 
     @NotNull
-    private LocalTime startsAt;
+    private LocalDateTime startsAt;
 
     @NotNull
-    private LocalTime endsAt;
-
-    @NotNull
-    private LocalDate date;
+    private LocalDateTime endsAt;
 }

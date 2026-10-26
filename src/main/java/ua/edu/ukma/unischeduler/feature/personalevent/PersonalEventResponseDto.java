@@ -5,8 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -18,7 +17,6 @@ public class PersonalEventResponseDto {
     private String name;
     private String location;
     private String description;
-    private LocalTime startsAt;
-    private LocalTime endsAt;
-    private LocalDate date;
+    private LocalDateTime startsAt;
+    private LocalDateTime endsAt;
 }

@@ -6,8 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -45,13 +44,10 @@ public class ClassOverride {
     private String locationOverride;
 
     @Column(name = "starts_at_override")
-    private LocalTime startsAtOverride;
+    private LocalDateTime startsAtOverride;
 
     @Column(name = "ends_at_override")
-    private LocalTime endsAtOverride;
-
-    @Column(name = "date_override")
-    private LocalDate dateOverride;
+    private LocalDateTime endsAtOverride;
 
     @Size(max = 200)
     @Column(name = "description", length = 200)

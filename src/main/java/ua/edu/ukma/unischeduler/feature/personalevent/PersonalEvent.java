@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -33,11 +32,8 @@ public class PersonalEvent {
     private String description;
 
     @Column(name = "starts_at", nullable = false)
-    private LocalTime startsAt;
+    private LocalDateTime startsAt;
 
     @Column(name = "ends_at", nullable = false)
-    private LocalTime endsAt;
-
-    @Column(name = "date", nullable = false)
-    private LocalDate date;
+    private LocalDateTime endsAt;
 }

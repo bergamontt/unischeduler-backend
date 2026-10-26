@@ -7,6 +7,7 @@ import lombok.*;
 import ua.edu.ukma.unischeduler.feature.course.Course;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -41,11 +42,8 @@ public class CourseClass {
     private String location;
 
     @Column(name = "starts_at", nullable = false)
-    private LocalTime startsAt;
+    private LocalDateTime startsAt;
 
     @Column(name = "ends_at", nullable = false)
-    private LocalTime endsAt;
-
-    @Column(name = "date", nullable = false)
-    private LocalDate date;
+    private LocalDateTime endsAt;
 }
