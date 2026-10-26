@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Data
@@ -32,11 +33,8 @@ public class CourseClassCreateDto {
     private String location;
 
     @NotNull
-    private LocalTime startsAt;
+    private LocalDateTime startsAt;
 
     @NotNull
-    private LocalTime endsAt;
-
-    @NotNull
-    private LocalDate date;
+    private LocalDateTime endsAt;
 }

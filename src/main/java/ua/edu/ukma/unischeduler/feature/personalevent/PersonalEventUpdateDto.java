@@ -7,8 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -26,11 +25,8 @@ public class PersonalEventUpdateDto {
     private String description;
 
     @NotNull
-    private LocalTime startsAt;
+    private LocalDateTime startsAt;
 
     @NotNull
-    private LocalTime endsAt;
-
-    @NotNull
-    private LocalDate date;
+    private LocalDateTime endsAt;
 }

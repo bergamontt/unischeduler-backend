@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Data
@@ -21,9 +22,8 @@ public class ClassOverrideResponseDto {
     private String groupOverride;
     private String classNameOverride;
     private String locationOverride;
-    private LocalTime startsAtOverride;
-    private LocalTime endsAtOverride;
-    private LocalDate dateOverride;
+    private LocalDateTime startsAtOverride;
+    private LocalDateTime endsAtOverride;
     private String description;
     private Boolean isHidden;
 }
