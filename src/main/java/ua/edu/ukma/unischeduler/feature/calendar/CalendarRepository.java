@@ -10,14 +10,14 @@ import java.util.List;
 
 public interface CalendarRepository extends JpaRepository<CourseClass, Long> {
     @Query("""
-        SELECT cc AS courseClass, co AS override
+        SELECT new ua.edu.ukma.unischeduler.feature.calendar.CourseClassWithOverride(cc, co)
         FROM CourseClass cc
         LEFT JOIN ClassOverride co
                ON co.courseClass = cc
-              AND co.user = :userId
+              AND (cast(:userId as Long) IS NULL OR co.user = :userId)
               AND co.isHidden = false
-        WHERE (:startsAt IS NULL OR cc.endsAt >= :startsAt)
-          AND (:endsAt IS NULL OR cc.startsAt <= :endsAt)
+        WHERE (cast(:startsAt as timestamp) IS NULL OR cc.endsAt >= :startsAt)
+          AND (cast(:endsAt as timestamp) IS NULL OR cc.startsAt <= :endsAt)
     """)
     List<CourseClassWithOverride> findClassesWithOverrides(
             @Param("userId") Long userId,
