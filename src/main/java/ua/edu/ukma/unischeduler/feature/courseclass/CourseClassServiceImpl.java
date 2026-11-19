@@ -18,7 +18,10 @@ public class CourseClassServiceImpl implements CourseClassService {
 
     @Override
     public CourseClassResponseDto create(CourseClassCreateDto dto) {
+        Course course = courseRepository.findById(dto.getCourse())
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
         CourseClass courseClass = courseClassMapper.toEntity(dto);
+        courseClass.setCourse(course);
         CourseClass created = courseClassRepository.save(courseClass);
         return courseClassMapper.toDto(created);
     }

@@ -33,7 +33,7 @@ public class CalendarServiceImpl implements CalendarService {
                 .map(calendarEventMapper::toCalendarEvent)
                 .toList();
         return Stream.concat(classEvents.stream(), personalEvents.stream())
-                .sorted(Comparator.comparing(CalendarEvent::getStartsAt))
+                .sorted(Comparator.comparing(CalendarEvent::getStartsAt, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }
 }
