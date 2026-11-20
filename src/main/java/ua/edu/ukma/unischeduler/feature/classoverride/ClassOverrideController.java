@@ -1,5 +1,6 @@
 package ua.edu.ukma.unischeduler.feature.classoverride;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ public class ClassOverrideController {
     private final ClassOverrideService classOverrideService;
 
     @PostMapping
-    public ClassOverrideResponseDto create(@RequestBody ClassOverrideCreateDto dto) {
+    public ClassOverrideResponseDto create(@Valid @RequestBody ClassOverrideCreateDto dto) {
         return classOverrideService.create(dto);
     }
 
@@ -27,7 +28,7 @@ public class ClassOverrideController {
     }
 
     @PutMapping
-    public ClassOverrideResponseDto update(@RequestBody ClassOverrideUpdateDto dto) {
+    public ClassOverrideResponseDto update(@Valid @RequestBody ClassOverrideUpdateDto dto) {
         return classOverrideService.update(dto);
     }
 

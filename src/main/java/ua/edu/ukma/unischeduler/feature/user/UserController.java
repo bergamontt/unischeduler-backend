@@ -1,5 +1,6 @@
 package ua.edu.ukma.unischeduler.feature.user;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserResponseDto create(@RequestBody UserCreateDto dto) {
+    public UserResponseDto create(@Valid @RequestBody UserCreateDto dto) {
         return userService.create(dto);
     }
 
@@ -27,7 +28,7 @@ public class UserController {
     }
 
     @PutMapping
-    public UserResponseDto update(@RequestBody UserUpdateDto dto) {
+    public UserResponseDto update(@Valid @RequestBody UserUpdateDto dto) {
         return userService.update(dto);
     }
 
