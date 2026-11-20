@@ -2,6 +2,7 @@ package ua.edu.ukma.unischeduler.feature.personalevent;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
 import ua.edu.ukma.unischeduler.feature.user.UserRepository;
 
@@ -15,6 +16,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     private final PersonalEventMapper personalEventMapper;
 
     @Override
+    @Transactional
     public PersonalEventResponseDto create(PersonalEventCreateDto dto) {
         PersonalEvent personalEvent = personalEventMapper.toEntity(dto);
         if (!userRepository.existsById(dto.getUserId()))
@@ -24,6 +26,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PersonalEventResponseDto findById(Long id) {
        PersonalEvent found = personalEventRepository.findById(id)
                .orElseThrow(() -> new ResourceNotFoundException("Personal event not found"));
@@ -31,6 +34,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PersonalEventResponseDto> findAll() {
         return personalEventRepository.findAll()
                 .stream()
@@ -39,6 +43,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     }
 
     @Override
+    @Transactional
     public PersonalEventResponseDto update(PersonalEventUpdateDto dto) {
         PersonalEvent found = personalEventRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Personal event not found"));
@@ -48,6 +53,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (!personalEventRepository.existsById(id))
             throw new ResourceNotFoundException("Personal event not found");

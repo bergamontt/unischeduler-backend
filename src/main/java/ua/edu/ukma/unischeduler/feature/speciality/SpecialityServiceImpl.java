@@ -2,6 +2,7 @@ package ua.edu.ukma.unischeduler.feature.speciality;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
 
 import java.util.List;
@@ -13,6 +14,7 @@ public class SpecialityServiceImpl implements SpecialityService {
     private final SpecialityMapper specialityMapper;
 
     @Override
+    @Transactional
     public SpecialityResponseDto create(SpecialityCreateDto dto) {
         Speciality speciality = specialityMapper.toEntity(dto);
         Speciality saved = specialityRepository.save(speciality);
@@ -20,6 +22,7 @@ public class SpecialityServiceImpl implements SpecialityService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SpecialityResponseDto findById(Long id) {
         Speciality found = specialityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Speciality not found"));
@@ -27,6 +30,7 @@ public class SpecialityServiceImpl implements SpecialityService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SpecialityResponseDto> findAll() {
         return specialityRepository.findAll()
                 .stream()
@@ -35,6 +39,7 @@ public class SpecialityServiceImpl implements SpecialityService {
     }
 
     @Override
+    @Transactional
     public SpecialityResponseDto update(SpecialityUpdateDto dto) {
         Speciality found = specialityRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Speciality not found"));
@@ -44,6 +49,7 @@ public class SpecialityServiceImpl implements SpecialityService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (!specialityRepository.existsById(id))
             throw new ResourceNotFoundException("Speciality not found");

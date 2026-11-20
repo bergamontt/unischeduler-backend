@@ -2,6 +2,7 @@ package ua.edu.ukma.unischeduler.feature.classoverride;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClassRepository;
@@ -18,6 +19,7 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
     private final ClassOverrideMapper classOverrideMapper;
 
     @Override
+    @Transactional
     public ClassOverrideResponseDto create(ClassOverrideCreateDto dto) {
         ClassOverride classOverride = classOverrideMapper.toEntity(dto);
         if (!userRepository.existsById(dto.getUser()))
@@ -30,6 +32,7 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ClassOverrideResponseDto findById(Long id) {
         ClassOverride found = classOverrideRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Class override not found"));
@@ -37,6 +40,7 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ClassOverrideResponseDto> findAll() {
         return classOverrideRepository.findAll()
                 .stream()
@@ -45,6 +49,7 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
     }
 
     @Override
+    @Transactional
     public ClassOverrideResponseDto update(ClassOverrideUpdateDto dto) {
         ClassOverride found = classOverrideRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Class override not found"));
@@ -54,6 +59,7 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (!classOverrideRepository.existsById(id))
             throw new ResourceNotFoundException("Class override not found");

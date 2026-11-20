@@ -2,6 +2,7 @@ package ua.edu.ukma.unischeduler.feature.courseclass;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
 import ua.edu.ukma.unischeduler.feature.course.Course;
 import ua.edu.ukma.unischeduler.feature.course.CourseMapper;
@@ -17,6 +18,7 @@ public class CourseClassServiceImpl implements CourseClassService {
     private final CourseClassMapper courseClassMapper;
 
     @Override
+    @Transactional
     public CourseClassResponseDto create(CourseClassCreateDto dto) {
         Course course = courseRepository.findById(dto.getCourse())
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
@@ -27,6 +29,7 @@ public class CourseClassServiceImpl implements CourseClassService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CourseClassResponseDto findById(Long id) {
         CourseClass found = courseClassRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Course class not found"));
@@ -34,6 +37,7 @@ public class CourseClassServiceImpl implements CourseClassService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CourseClassResponseDto> findAll() {
         return courseClassRepository.findAll()
                 .stream()
@@ -42,6 +46,7 @@ public class CourseClassServiceImpl implements CourseClassService {
     }
 
     @Override
+    @Transactional
     public CourseClassResponseDto update(CourseClassUpdateDto dto) {
         CourseClass found = courseClassRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Course class not found"));
@@ -54,6 +59,7 @@ public class CourseClassServiceImpl implements CourseClassService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (!courseClassRepository.existsById(id))
             throw new ResourceNotFoundException("Course class not found");
