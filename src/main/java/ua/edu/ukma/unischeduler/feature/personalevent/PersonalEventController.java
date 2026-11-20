@@ -1,5 +1,6 @@
 package ua.edu.ukma.unischeduler.feature.personalevent;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ public class PersonalEventController {
     private final PersonalEventService personalEventService;
 
     @PostMapping
-    public PersonalEventResponseDto create(@RequestBody PersonalEventCreateDto dto) {
+    public PersonalEventResponseDto create(@Valid @RequestBody PersonalEventCreateDto dto) {
         return personalEventService.create(dto);
     }
 
@@ -27,7 +28,7 @@ public class PersonalEventController {
     }
 
     @PutMapping
-    public PersonalEventResponseDto update(@RequestBody PersonalEventUpdateDto dto) {
+    public PersonalEventResponseDto update(@Valid @RequestBody PersonalEventUpdateDto dto) {
         return personalEventService.update(dto);
     }
 

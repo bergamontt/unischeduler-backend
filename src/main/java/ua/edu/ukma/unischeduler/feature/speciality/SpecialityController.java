@@ -1,5 +1,6 @@
 package ua.edu.ukma.unischeduler.feature.speciality;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ public class SpecialityController {
     private final SpecialityService specialityService;
 
     @PostMapping
-    public SpecialityResponseDto create(@RequestBody SpecialityCreateDto dto) {
+    public SpecialityResponseDto create(@Valid @RequestBody SpecialityCreateDto dto) {
         return specialityService.create(dto);
     }
 
@@ -27,7 +28,7 @@ public class SpecialityController {
     }
 
     @PutMapping
-    public SpecialityResponseDto update(@RequestBody SpecialityUpdateDto dto) {
+    public SpecialityResponseDto update(@Valid @RequestBody SpecialityUpdateDto dto) {
         return specialityService.update(dto);
     }
 

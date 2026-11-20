@@ -1,5 +1,6 @@
 package ua.edu.ukma.unischeduler.feature.courseclass;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ public class CourseClassController {
     private final CourseClassService courseClassService;
 
     @PostMapping
-    public CourseClassResponseDto create(@RequestBody CourseClassCreateDto dto) {
+    public CourseClassResponseDto create(@Valid @RequestBody CourseClassCreateDto dto) {
         return courseClassService.create(dto);
     }
 
@@ -27,7 +28,7 @@ public class CourseClassController {
     }
 
     @PutMapping
-    public CourseClassResponseDto update(@RequestBody CourseClassUpdateDto dto) {
+    public CourseClassResponseDto update(@Valid @RequestBody CourseClassUpdateDto dto) {
         return courseClassService.update(dto);
     }
 
