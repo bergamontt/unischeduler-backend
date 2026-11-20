@@ -25,7 +25,7 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
         if (!userRepository.existsById(dto.getUser()))
             throw new ResourceNotFoundException("User not found");
         CourseClass courseClass = courseClassRepository.findById(dto.getCourseClass())
-                .orElseThrow(() -> new ResourceNotFoundException("Class override not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Course class not found"));
         classOverride.setCourseClass(courseClass);
         ClassOverride saved = classOverrideRepository.save(classOverride);
         return classOverrideMapper.toDto(saved);

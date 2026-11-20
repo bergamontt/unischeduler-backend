@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void delete(Long id) {
         if (!userRepository.existsById(id))
-            throw new ResourceNotFoundException("Speciality not found");
+            throw new ResourceNotFoundException("User not found");
         userRepository.deleteById(id);
     }
 }
