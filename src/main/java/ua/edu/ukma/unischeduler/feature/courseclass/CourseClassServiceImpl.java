@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.common.validation.TimeRangeValidator;
+import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverrideRepository;
 import ua.edu.ukma.unischeduler.feature.course.Course;
-import ua.edu.ukma.unischeduler.feature.course.CourseMapper;
 import ua.edu.ukma.unischeduler.feature.course.CourseRepository;
 
 import java.util.List;
@@ -15,11 +16,13 @@ import java.util.List;
 public class CourseClassServiceImpl implements CourseClassService {
     private final CourseRepository courseRepository;
     private final CourseClassRepository courseClassRepository;
+    private final ClassOverrideRepository classOverrideRepository;
     private final CourseClassMapper courseClassMapper;
 
     @Override
     @Transactional
     public CourseClassResponseDto create(CourseClassCreateDto dto) {
+        TimeRangeValidator.validate(dto.getStartsAt(), dto.getEndsAt());
         Course course = courseRepository.findById(dto.getCourse())
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
         CourseClass courseClass = courseClassMapper.toEntity(dto);
@@ -48,6 +51,7 @@ public class CourseClassServiceImpl implements CourseClassService {
     @Override
     @Transactional
     public CourseClassResponseDto update(CourseClassUpdateDto dto) {
+        TimeRangeValidator.validate(dto.getStartsAt(), dto.getEndsAt());
         CourseClass found = courseClassRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Course class not found"));
         Course course = courseRepository.findById(dto.getCourse())
@@ -63,6 +67,7 @@ public class CourseClassServiceImpl implements CourseClassService {
     public void delete(Long id) {
         if (!courseClassRepository.existsById(id))
             throw new ResourceNotFoundException("Course class not found");
+        classOverrideRepository.deleteAllByCourseClassId(id);
         courseClassRepository.deleteById(id);
     }
 }

@@ -12,5 +12,6 @@ public interface PersonalEventMapper {
     PersonalEvent toEntity(PersonalEventCreateDto dto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "userId", ignore = true)
     void update(PersonalEventUpdateDto dto, @MappingTarget PersonalEvent personalEvent);
 }

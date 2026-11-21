@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.common.validation.TimeRangeValidator;
 import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClassRepository;
@@ -23,9 +24,12 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
     @Override
     @Transactional
     public ClassOverrideResponseDto create(ClassOverrideCreateDto dto) {
+        TimeRangeValidator.validate(dto.getStartsAtOverride(), dto.getEndsAtOverride());
         Long userId = currentUserService.resolveUserId(dto.getUser());
         if (!userRepository.existsById(userId))
             throw new ResourceNotFoundException("User not found");
+        if (classOverrideRepository.existsByUserAndCourseClassId(userId, dto.getCourseClass()))
+            throw new IllegalArgumentException("Class override already exists for this user and course class");
         CourseClass courseClass = courseClassRepository.findById(dto.getCourseClass())
                 .orElseThrow(() -> new ResourceNotFoundException("Course class not found"));
         ClassOverride classOverride = classOverrideMapper.toEntity(dto);
@@ -58,6 +62,7 @@ public class ClassOverrideServiceImpl implements ClassOverrideService {
     @Override
     @Transactional
     public ClassOverrideResponseDto update(ClassOverrideUpdateDto dto) {
+        TimeRangeValidator.validate(dto.getStartsAtOverride(), dto.getEndsAtOverride());
         ClassOverride found = classOverrideRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Class override not found"));
         currentUserService.verifyOwnership(found.getUser());

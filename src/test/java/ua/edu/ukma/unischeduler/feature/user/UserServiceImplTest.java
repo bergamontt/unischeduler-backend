@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
 import ua.edu.ukma.unischeduler.common.enums.UserRole;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
+import ua.edu.ukma.unischeduler.feature.auth.UserPrincipal;
 import ua.edu.ukma.unischeduler.feature.speciality.Speciality;
 import ua.edu.ukma.unischeduler.feature.speciality.SpecialityRepository;
 
@@ -26,11 +28,17 @@ class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     private UserServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new UserServiceImpl(specialityRepository, userRepository, Mappers.getMapper(UserMapper.class));
+        UserPrincipal currentAdmin = mock(UserPrincipal.class);
+        lenient().when(currentAdmin.getId()).thenReturn(999L);
+        lenient().when(currentUserService.getCurrentUser()).thenReturn(currentAdmin);
+        service = new UserServiceImpl(specialityRepository, userRepository, Mappers.getMapper(UserMapper.class), currentUserService);
     }
 
     @Test
@@ -136,6 +144,18 @@ class UserServiceImplTest {
     }
 
     @Test
+    void deleteThrowsWhenDeletingOwnAccount() {
+        UserPrincipal self = mock(UserPrincipal.class);
+        when(self.getId()).thenReturn(1L);
+        when(currentUserService.getCurrentUser()).thenReturn(self);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> service.delete(1L));
+
+        assertEquals("You cannot delete your own account", exception.getMessage());
+        verify(userRepository, never()).deleteById(any());
+    }
+
+    @Test
     void createThrowsWhenSpecialityDoesNotExist() {
         UserCreateDto dto = UserCreateDto.builder().specialityId(2L).email("student@ukma.edu.ua").role(UserRole.STUDENT).build();
         when(specialityRepository.findById(2L)).thenReturn(Optional.empty());
@@ -160,4 +180,3 @@ class UserServiceImplTest {
         verify(userRepository, never()).save(any(User.class));
     }
 }
-

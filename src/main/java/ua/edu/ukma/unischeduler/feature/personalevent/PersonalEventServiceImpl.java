@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.common.validation.TimeRangeValidator;
 import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
 import ua.edu.ukma.unischeduler.feature.user.UserRepository;
 
@@ -20,6 +21,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     @Override
     @Transactional
     public PersonalEventResponseDto create(PersonalEventCreateDto dto) {
+        TimeRangeValidator.validate(dto.getStartsAt(), dto.getEndsAt());
         Long userId = currentUserService.resolveUserId(dto.getUserId());
         if (!userRepository.existsById(userId))
             throw new ResourceNotFoundException("User not found");
@@ -52,6 +54,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     @Override
     @Transactional
     public PersonalEventResponseDto update(PersonalEventUpdateDto dto) {
+        TimeRangeValidator.validate(dto.getStartsAt(), dto.getEndsAt());
         PersonalEvent found = personalEventRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Personal event not found"));
         currentUserService.verifyOwnership(found.getUserId());

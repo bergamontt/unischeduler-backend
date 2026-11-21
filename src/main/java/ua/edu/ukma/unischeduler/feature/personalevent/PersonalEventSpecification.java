@@ -13,7 +13,7 @@ public class PersonalEventSpecification {
     public static Specification<PersonalEvent> hasUserId(Long userId) {
         return (root, _, criteriaBuilder) -> {
             if (userId == null)
-                return null;
+                return criteriaBuilder.disjunction();
             return criteriaBuilder.equal(root.get("userId"), userId);
         };
     }

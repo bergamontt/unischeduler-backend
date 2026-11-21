@@ -35,11 +35,12 @@ public class CalendarServiceImpl implements CalendarService {
                 .stream()
                 .map(calendarEventMapper::toCalendarEvent)
                 .toList();
-        Specification<PersonalEvent> personalSpecification = PersonalEventSpecification.build(filter);
-        List<CalendarEvent> personalEvents = personalEventRepository.findAll(personalSpecification)
-                .stream()
-                .map(calendarEventMapper::toCalendarEvent)
-                .toList();
+        List<CalendarEvent> personalEvents = filter.getUserId() == null
+                ? List.of()
+                : personalEventRepository.findAll(PersonalEventSpecification.build(filter))
+                        .stream()
+                        .map(calendarEventMapper::toCalendarEvent)
+                        .toList();
         return Stream.concat(classEvents.stream(), personalEvents.stream())
                 .sorted(Comparator.comparing(CalendarEvent::getStartsAt, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
 import ua.edu.ukma.unischeduler.feature.speciality.Speciality;
 import ua.edu.ukma.unischeduler.feature.speciality.SpecialityRepository;
 
@@ -15,6 +16,7 @@ public class UserServiceImpl implements UserService {
     private final SpecialityRepository specialityRepository;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional
@@ -60,6 +62,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
+        if (currentUserService.getCurrentUser().getId().equals(id)) {
+            throw new IllegalArgumentException("You cannot delete your own account");
+        }
         if (!userRepository.existsById(id))
             throw new ResourceNotFoundException("User not found");
         userRepository.deleteById(id);

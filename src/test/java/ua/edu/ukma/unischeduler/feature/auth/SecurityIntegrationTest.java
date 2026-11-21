@@ -1,5 +1,6 @@
 package ua.edu.ukma.unischeduler.feature.auth;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,18 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import ua.edu.ukma.unischeduler.common.enums.Semester;
 import ua.edu.ukma.unischeduler.common.enums.UserRole;
+import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverride;
+import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverrideRepository;
+import ua.edu.ukma.unischeduler.feature.course.Course;
+import ua.edu.ukma.unischeduler.feature.course.CourseRepository;
+import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
+import ua.edu.ukma.unischeduler.feature.courseclass.CourseClassRepository;
 import ua.edu.ukma.unischeduler.feature.personalevent.PersonalEvent;
 import ua.edu.ukma.unischeduler.feature.personalevent.PersonalEventRepository;
+import ua.edu.ukma.unischeduler.feature.speciality.Speciality;
+import ua.edu.ukma.unischeduler.feature.speciality.SpecialityRepository;
 import ua.edu.ukma.unischeduler.feature.user.User;
 import ua.edu.ukma.unischeduler.feature.user.UserRepository;
 
@@ -39,6 +49,21 @@ class SecurityIntegrationTest {
 
     @Autowired
     private PersonalEventRepository personalEventRepository;
+
+    @Autowired
+    private SpecialityRepository specialityRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
+    private CourseClassRepository courseClassRepository;
+
+    @Autowired
+    private ClassOverrideRepository classOverrideRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private User student;
     private User otherStudent;
@@ -105,6 +130,11 @@ class SecurityIntegrationTest {
         UserPrincipal principal = principalFor(student);
 
         mockMvc.perform(get("/calendar")
+                        .with(oidcLogin().oidcUser(principal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+
+        mockMvc.perform(get("/calendar")
                         .param("userId", otherStudent.getId().toString())
                         .with(oidcLogin().oidcUser(principal)))
                 .andExpect(status().isForbidden());
@@ -134,6 +164,37 @@ class SecurityIntegrationTest {
                         .with(oidcLogin().oidcUser(principal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Software Engineering\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/user/{id}", admin.getId())
+                        .with(oidcLogin().oidcUser(principal)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deletingReferencedSpecialityReturns409AndDeletingClassCascadesOverrides() throws Exception {
+        UserPrincipal adminPrincipal = principalFor(admin);
+        Speciality speciality = specialityRepository.save(Speciality.builder().name("CS").build());
+        userRepository.save(User.builder().email("linked@ukma.edu.ua").role(UserRole.STUDENT).speciality(speciality).build());
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(delete("/speciality/{id}", speciality.getId())
+                        .with(oidcLogin().oidcUser(adminPrincipal)))
+                .andExpect(status().isConflict());
+
+        Course course = courseRepository.save(Course.builder()
+                .name("Algorithms").faculty("FI").department("CS")
+                .semester(Semester.AUTUMN).year(2026).build());
+        CourseClass courseClass = courseClassRepository.save(CourseClass.builder()
+                .course(course).teacher("Prof").group("1").location("101")
+                .startsAt(LocalDateTime.of(2026, 11, 21, 10, 0))
+                .endsAt(LocalDateTime.of(2026, 11, 21, 11, 20)).build());
+        classOverrideRepository.save(ClassOverride.builder()
+                .user(student.getId()).courseClass(courseClass).isHidden(true).build());
+
+        mockMvc.perform(delete("/class/{id}", courseClass.getId())
+                        .with(oidcLogin().oidcUser(adminPrincipal)))
                 .andExpect(status().isOk());
     }
 

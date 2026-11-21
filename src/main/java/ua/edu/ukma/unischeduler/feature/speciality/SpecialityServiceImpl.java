@@ -54,5 +54,6 @@ public class SpecialityServiceImpl implements SpecialityService {
         if (!specialityRepository.existsById(id))
             throw new ResourceNotFoundException("Speciality not found");
         specialityRepository.deleteById(id);
+        specialityRepository.flush();
     }
 }

@@ -7,6 +7,7 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverrideRepository;
 import ua.edu.ukma.unischeduler.feature.course.Course;
 import ua.edu.ukma.unischeduler.feature.course.CourseRepository;
 
@@ -25,11 +26,14 @@ class CourseClassServiceImplTest {
     @Mock
     private CourseClassRepository courseClassRepository;
 
+    @Mock
+    private ClassOverrideRepository classOverrideRepository;
+
     private CourseClassServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new CourseClassServiceImpl(courseRepository, courseClassRepository, Mappers.getMapper(CourseClassMapper.class));
+        service = new CourseClassServiceImpl(courseRepository, courseClassRepository, classOverrideRepository, Mappers.getMapper(CourseClassMapper.class));
     }
 
     @Test

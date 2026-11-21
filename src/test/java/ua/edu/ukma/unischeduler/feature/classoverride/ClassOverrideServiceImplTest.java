@@ -113,7 +113,7 @@ class ClassOverrideServiceImplTest {
         assertEquals(1L, result.getId());
         assertEquals("Room 202", result.getLocationOverride());
         assertEquals(3L, result.getUser());
-        assertSame(courseClass, result.getCourseClass());
+        assertEquals(2L, result.getCourseClass().getId());
         verify(classOverrideRepository).save(existing);
     }
 
