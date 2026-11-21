@@ -50,6 +50,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/oauth2/**", "/login/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/academic-period", "/academic-period/**").permitAll()
+                        // Machine-to-machine import: the controller checks X-Import-Token.
+                        // Do not grant this token permissions on other admin endpoints.
+                        .requestMatchers(HttpMethod.POST, "/admin/schedule-imports/replace").permitAll()
                         .requestMatchers("/user", "/user/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/course/**", "/class/**", "/speciality/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/course/**", "/class/**", "/speciality/**", "/academic-period/**").hasRole("ADMIN")

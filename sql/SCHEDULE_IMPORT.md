@@ -12,7 +12,11 @@ historical user-created classes.
 2. Start the backend as specified in the README.md (Java 25 / Docker).
 3. Back up PostgreSQL, review `2026_schedule_import.sql` and execute it once.
 4. Install/use the separate Python importer and use `import --dry-run` first.
-5. Send authenticated requests with header `X-Import-Token`.
+5. Send requests with header `X-Import-Token`. No interactive OIDC login or ADMIN
+   user role is needed for this single endpoint: `POST /api/admin/schedule-imports/replace`.
+   Spring Security permits that request through to the controller, which rejects
+   absent or invalid tokens with HTTP 403 before running the import service.
+   Other admin CRUD endpoints retain their current authentication requirements.
 
 ## Scope and replacement semantics
 
