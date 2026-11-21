@@ -5,13 +5,12 @@ The endpoint is disabled by default and requires a separate shared secret.
 The changes are compatible with the original CRUD APIs and do not delete
 historical user-created classes.
 
-## Before running it
+## How to run it
 
-1. Back up PostgreSQL, review `2026_schedule_import.sql` and execute it once
-   (or adapt it to Flyway/Liquibase).
-2. Set `UNISCHEDULER_IMPORT_ENABLED=true` and the `UNISCHEDULER_IMPORT_TOKEN` in the backend `.env`. 
-   The included patched `docker-compose.yaml` now passes both values into the service container.
-3. Start the backend exactly as in the README.md (Java 25 / Docker).
+1. Set `UNISCHEDULER_IMPORT_ENABLED=true` and the `UNISCHEDULER_IMPORT_TOKEN` in the backend `.env`.
+   `docker-compose.yaml` passes both values into the service container.
+2. Start the backend as specified in the README.md (Java 25 / Docker).
+3. Back up PostgreSQL, review `2026_schedule_import.sql` and execute it once.
 4. Install/use the separate Python importer and use `import --dry-run` first.
 5. Send authenticated requests with header `X-Import-Token`.
 
