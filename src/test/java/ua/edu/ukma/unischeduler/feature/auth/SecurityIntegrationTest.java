@@ -101,6 +101,10 @@ class SecurityIntegrationTest {
         mockMvc.perform(get("/calendar")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/auth/me")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/personal-event")).andExpect(status().isUnauthorized());
+        mockMvc.perform(put("/academic-period")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"semester\":\"AUTUMN\",\"startDate\":\"2026-09-01\"}"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -122,6 +126,12 @@ class SecurityIntegrationTest {
                         .with(oidcLogin().oidcUser(principal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"CS\"}"))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(put("/academic-period")
+                        .with(oidcLogin().oidcUser(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"semester\":\"AUTUMN\",\"startDate\":\"2026-09-01\"}"))
                 .andExpect(status().isForbidden());
     }
 
@@ -165,6 +175,17 @@ class SecurityIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Software Engineering\"}"))
                 .andExpect(status().isOk());
+
+        mockMvc.perform(put("/academic-period")
+                        .with(oidcLogin().oidcUser(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"semester\":\"AUTUMN\",\"startDate\":\"2026-09-01\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.semester").value("AUTUMN"));
+
+        mockMvc.perform(get("/academic-period"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.semester").value("AUTUMN"));
 
         mockMvc.perform(delete("/user/{id}", admin.getId())
                         .with(oidcLogin().oidcUser(principal)))
