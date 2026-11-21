@@ -6,7 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
+import ua.edu.ukma.unischeduler.feature.auth.UserPrincipal;
 import ua.edu.ukma.unischeduler.feature.user.UserRepository;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClassRepository;
@@ -29,11 +32,16 @@ class ClassOverrideServiceImplTest {
     @Mock
     private ClassOverrideRepository classOverrideRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     private ClassOverrideServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new ClassOverrideServiceImpl(userRepository, courseClassRepository, classOverrideRepository, Mappers.getMapper(ClassOverrideMapper.class));
+        lenient().when(currentUserService.isAdmin()).thenReturn(true);
+        lenient().when(currentUserService.resolveUserId(any())).thenAnswer(inv -> inv.getArgument(0));
+        service = new ClassOverrideServiceImpl(userRepository, courseClassRepository, classOverrideRepository, Mappers.getMapper(ClassOverrideMapper.class), currentUserService);
     }
 
     @Test
@@ -122,21 +130,22 @@ class ClassOverrideServiceImplTest {
 
     @Test
     void deleteRemovesExistingClassOverride() {
-        when(classOverrideRepository.existsById(1L)).thenReturn(true);
+        ClassOverride existing = ClassOverride.builder().id(1L).user(3L).build();
+        when(classOverrideRepository.findById(1L)).thenReturn(Optional.of(existing));
 
         service.delete(1L);
 
-        verify(classOverrideRepository).deleteById(1L);
+        verify(classOverrideRepository).delete(existing);
     }
 
     @Test
     void deleteThrowsWhenClassOverrideDoesNotExist() {
-        when(classOverrideRepository.existsById(1L)).thenReturn(false);
+        when(classOverrideRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
 
         assertEquals("Class override not found", exception.getMessage());
-        verify(classOverrideRepository, never()).deleteById(any());
+        verify(classOverrideRepository, never()).delete(any());
     }
 
     @Test
@@ -161,6 +170,45 @@ class ClassOverrideServiceImplTest {
 
         assertEquals("Course class not found", exception.getMessage());
         verify(classOverrideRepository, never()).save(any(ClassOverride.class));
+    }
+
+    @Test
+    void findAllReturnsOnlyCurrentUsersOverridesForStudent() {
+        UserPrincipal student = mock(UserPrincipal.class);
+        when(student.getId()).thenReturn(5L);
+        when(currentUserService.isAdmin()).thenReturn(false);
+        when(currentUserService.getCurrentUser()).thenReturn(student);
+        when(classOverrideRepository.findAllByUser(5L))
+                .thenReturn(List.of(ClassOverride.builder().id(10L).user(5L).build()));
+
+        List<ClassOverrideResponseDto> result = service.findAll();
+
+        assertEquals(1, result.size());
+        assertEquals(5L, result.getFirst().getUser());
+        verify(classOverrideRepository).findAllByUser(5L);
+        verify(classOverrideRepository, never()).findAll();
+    }
+
+    @Test
+    void createUsesResolvedUserIdForStudent() {
+        ClassOverrideCreateDto dto = ClassOverrideCreateDto.builder().user(999L).courseClass(2L).build();
+        when(currentUserService.resolveUserId(999L)).thenReturn(5L);
+        when(userRepository.existsById(5L)).thenReturn(true);
+        when(courseClassRepository.findById(2L)).thenReturn(Optional.of(CourseClass.builder().id(2L).build()));
+        when(classOverrideRepository.save(any(ClassOverride.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ClassOverrideResponseDto result = service.create(dto);
+
+        assertEquals(5L, result.getUser());
+    }
+
+    @Test
+    void findByIdThrowsWhenOwnershipCheckFails() {
+        ClassOverride existing = ClassOverride.builder().id(1L).user(99L).build();
+        when(classOverrideRepository.findById(1L)).thenReturn(Optional.of(existing));
+        doThrow(new AccessDeniedException("Access denied")).when(currentUserService).verifyOwnership(99L);
+
+        assertThrows(AccessDeniedException.class, () -> service.findById(1L));
     }
 }
 

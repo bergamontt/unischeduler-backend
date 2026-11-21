@@ -6,7 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
+import ua.edu.ukma.unischeduler.feature.auth.UserPrincipal;
 import ua.edu.ukma.unischeduler.feature.user.UserRepository;
 
 import java.util.List;
@@ -24,11 +27,16 @@ class PersonalEventServiceImplTest {
     @Mock
     private PersonalEventRepository personalEventRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     private PersonalEventServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new PersonalEventServiceImpl(userRepository, personalEventRepository, Mappers.getMapper(PersonalEventMapper.class));
+        lenient().when(currentUserService.isAdmin()).thenReturn(true);
+        lenient().when(currentUserService.resolveUserId(any())).thenAnswer(inv -> inv.getArgument(0));
+        service = new PersonalEventServiceImpl(userRepository, personalEventRepository, Mappers.getMapper(PersonalEventMapper.class), currentUserService);
     }
 
     @Test
@@ -111,21 +119,22 @@ class PersonalEventServiceImplTest {
 
     @Test
     void deleteRemovesExistingPersonalEvent() {
-        when(personalEventRepository.existsById(1L)).thenReturn(true);
+        PersonalEvent existing = PersonalEvent.builder().id(1L).userId(2L).build();
+        when(personalEventRepository.findById(1L)).thenReturn(Optional.of(existing));
 
         service.delete(1L);
 
-        verify(personalEventRepository).deleteById(1L);
+        verify(personalEventRepository).delete(existing);
     }
 
     @Test
     void deleteThrowsWhenPersonalEventDoesNotExist() {
-        when(personalEventRepository.existsById(1L)).thenReturn(false);
+        when(personalEventRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
 
         assertEquals("Personal event not found", exception.getMessage());
-        verify(personalEventRepository, never()).deleteById(any());
+        verify(personalEventRepository, never()).delete(any(PersonalEvent.class));
     }
 
     @Test
@@ -137,6 +146,44 @@ class PersonalEventServiceImplTest {
 
         assertEquals("User not found", exception.getMessage());
         verify(personalEventRepository, never()).save(any(PersonalEvent.class));
+    }
+
+    @Test
+    void findAllReturnsOnlyCurrentUsersEventsForStudent() {
+        UserPrincipal student = mock(UserPrincipal.class);
+        when(student.getId()).thenReturn(5L);
+        when(currentUserService.isAdmin()).thenReturn(false);
+        when(currentUserService.getCurrentUser()).thenReturn(student);
+        when(personalEventRepository.findAllByUserId(5L))
+                .thenReturn(List.of(PersonalEvent.builder().id(10L).userId(5L).name("Mine").build()));
+
+        List<PersonalEventResponseDto> result = service.findAll();
+
+        assertEquals(1, result.size());
+        assertEquals(5L, result.getFirst().getUserId());
+        verify(personalEventRepository).findAllByUserId(5L);
+        verify(personalEventRepository, never()).findAll();
+    }
+
+    @Test
+    void createUsesResolvedUserIdForStudent() {
+        PersonalEventCreateDto dto = PersonalEventCreateDto.builder().userId(999L).name("Meeting").build();
+        when(currentUserService.resolveUserId(999L)).thenReturn(5L);
+        when(userRepository.existsById(5L)).thenReturn(true);
+        when(personalEventRepository.save(any(PersonalEvent.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PersonalEventResponseDto result = service.create(dto);
+
+        assertEquals(5L, result.getUserId());
+    }
+
+    @Test
+    void findByIdThrowsWhenOwnershipCheckFails() {
+        PersonalEvent existing = PersonalEvent.builder().id(1L).userId(99L).build();
+        when(personalEventRepository.findById(1L)).thenReturn(Optional.of(existing));
+        doThrow(new AccessDeniedException("Access denied")).when(currentUserService).verifyOwnership(99L);
+
+        assertThrows(AccessDeniedException.class, () -> service.findById(1L));
     }
 }
 

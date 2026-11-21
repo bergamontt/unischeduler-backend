@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import ua.edu.ukma.unischeduler.common.enums.EventType;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
 import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverride;
 import ua.edu.ukma.unischeduler.feature.course.Course;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
@@ -29,11 +30,14 @@ class CalendarServiceImplTest {
     @Mock
     private PersonalEventRepository personalEventRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     private CalendarServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new CalendarServiceImpl(calendarRepository, personalEventRepository, Mappers.getMapper(CalendarEventMapper.class));
+        service = new CalendarServiceImpl(calendarRepository, personalEventRepository, Mappers.getMapper(CalendarEventMapper.class), currentUserService);
     }
 
     @Test
