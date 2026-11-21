@@ -4,11 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
+import ua.edu.ukma.unischeduler.feature.courseclass.CourseClassResponseDto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Data
 @AllArgsConstructor
@@ -17,7 +15,7 @@ import java.time.LocalTime;
 public class ClassOverrideResponseDto {
     private Long id;
     private Long user;
-    private CourseClass courseClass;
+    private CourseClassResponseDto courseClass;
     private String teacherOverride;
     private String groupOverride;
     private String classNameOverride;

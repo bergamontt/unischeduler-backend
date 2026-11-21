@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "course_class_id"}))
 @Getter
 @Setter
 @Builder
@@ -25,6 +28,7 @@ public class ClassOverride {
 
     @ManyToOne
     @JoinColumn(name = "course_class_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private CourseClass courseClass;
 
     @Size(max = 100)

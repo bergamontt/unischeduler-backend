@@ -17,8 +17,8 @@ public interface CalendarRepository extends JpaRepository<CourseClass, Long> {
               AND cast(:userId as Long) IS NOT NULL
               AND co.user = :userId
         WHERE (co IS NULL OR co.isHidden = false)
-          AND (cast(:startsAt as timestamp) IS NULL OR cc.endsAt >= :startsAt)
-          AND (cast(:endsAt as timestamp) IS NULL OR cc.startsAt <= :endsAt)
+          AND (cast(:startsAt as timestamp) IS NULL OR COALESCE(co.endsAtOverride, cc.endsAt) >= :startsAt)
+          AND (cast(:endsAt as timestamp) IS NULL OR COALESCE(co.startsAtOverride, cc.startsAt) <= :endsAt)
     """)
     List<CourseClassWithOverride> findClassesWithOverrides(
             @Param("userId") Long userId,

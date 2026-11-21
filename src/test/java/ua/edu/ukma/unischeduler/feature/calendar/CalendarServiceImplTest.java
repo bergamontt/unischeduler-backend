@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import ua.edu.ukma.unischeduler.common.enums.EventType;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
 import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverride;
 import ua.edu.ukma.unischeduler.feature.course.Course;
 import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
@@ -29,11 +30,14 @@ class CalendarServiceImplTest {
     @Mock
     private PersonalEventRepository personalEventRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     private CalendarServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new CalendarServiceImpl(calendarRepository, personalEventRepository, Mappers.getMapper(CalendarEventMapper.class));
+        service = new CalendarServiceImpl(calendarRepository, personalEventRepository, Mappers.getMapper(CalendarEventMapper.class), currentUserService);
     }
 
     @Test
@@ -64,11 +68,11 @@ class CalendarServiceImplTest {
         ClassOverride override = ClassOverride.builder().id(5L).classNameOverride("Consultation")
                 .startsAtOverride(startsAt.plusHours(3)).build();
         PersonalEvent personalEvent = PersonalEvent.builder().id(3L).startsAt(startsAt.plusHours(1)).build();
-        when(calendarRepository.findClassesWithOverrides(null, null, null))
+        when(calendarRepository.findClassesWithOverrides(1L, null, null))
                 .thenReturn(List.of(new CourseClassWithOverride(courseClass, override)));
         when(personalEventRepository.findAll(ArgumentMatchers.<Specification<PersonalEvent>>any())).thenReturn(List.of(personalEvent));
 
-        List<CalendarEvent> result = service.findAll(new CalendarEventFilterDto());
+        List<CalendarEvent> result = service.findAll(CalendarEventFilterDto.builder().userId(1L).build());
 
         assertEquals(List.of(3L, 5L), result.stream().map(CalendarEvent::getEventId).toList());
         assertEquals("Consultation", result.get(1).getName());
@@ -81,11 +85,11 @@ class CalendarServiceImplTest {
         LocalDateTime startsAt = LocalDateTime.of(2026, 11, 20, 8, 0);
         CourseClass courseClass = CourseClass.builder().id(2L).build();
         PersonalEvent personalEvent = PersonalEvent.builder().id(3L).startsAt(startsAt).build();
-        when(calendarRepository.findClassesWithOverrides(null, null, null))
+        when(calendarRepository.findClassesWithOverrides(1L, null, null))
                 .thenReturn(List.of(new CourseClassWithOverride(courseClass, null)));
         when(personalEventRepository.findAll(ArgumentMatchers.<Specification<PersonalEvent>>any())).thenReturn(List.of(personalEvent));
 
-        List<CalendarEvent> result = service.findAll(new CalendarEventFilterDto());
+        List<CalendarEvent> result = service.findAll(CalendarEventFilterDto.builder().userId(1L).build());
 
         assertEquals(List.of(3L, 2L), result.stream().map(CalendarEvent::getEventId).toList());
         assertNull(result.get(1).getStartsAt());
@@ -94,10 +98,10 @@ class CalendarServiceImplTest {
     @Test
     void findAllReturnsPersonalEventsWhenThereAreNoClasses() {
         PersonalEvent personalEvent = PersonalEvent.builder().id(3L).name("Meeting").build();
-        when(calendarRepository.findClassesWithOverrides(null, null, null)).thenReturn(List.of());
+        when(calendarRepository.findClassesWithOverrides(1L, null, null)).thenReturn(List.of());
         when(personalEventRepository.findAll(ArgumentMatchers.<Specification<PersonalEvent>>any())).thenReturn(List.of(personalEvent));
 
-        List<CalendarEvent> result = service.findAll(new CalendarEventFilterDto());
+        List<CalendarEvent> result = service.findAll(CalendarEventFilterDto.builder().userId(1L).build());
 
         assertEquals(1, result.size());
         assertEquals("Meeting", result.getFirst().getName());
@@ -105,10 +109,23 @@ class CalendarServiceImplTest {
     }
 
     @Test
+    void findAllDoesNotQueryPersonalEventsWhenUserIdIsNull() {
+        CourseClass courseClass = CourseClass.builder().id(2L).startsAt(LocalDateTime.of(2026, 11, 20, 10, 0)).build();
+        when(calendarRepository.findClassesWithOverrides(null, null, null))
+                .thenReturn(List.of(new CourseClassWithOverride(courseClass, null)));
+
+        List<CalendarEvent> result = service.findAll(new CalendarEventFilterDto());
+
+        assertEquals(1, result.size());
+        assertEquals(EventType.COURSE_CLASS, result.getFirst().getEventType());
+        verifyNoInteractions(personalEventRepository);
+    }
+
+    @Test
     void findAllReturnsEmptyListWhenThereAreNoEvents() {
         when(calendarRepository.findClassesWithOverrides(null, null, null)).thenReturn(List.of());
-        when(personalEventRepository.findAll(ArgumentMatchers.<Specification<PersonalEvent>>any())).thenReturn(List.of());
 
         assertTrue(service.findAll(new CalendarEventFilterDto()).isEmpty());
+        verifyNoInteractions(personalEventRepository);
     }
 }

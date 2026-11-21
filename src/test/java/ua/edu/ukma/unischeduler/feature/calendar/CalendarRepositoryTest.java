@@ -115,4 +115,23 @@ class CalendarRepositoryTest {
         assertEquals(1, result.size());
         assertEquals(classA.getId(), result.getFirst().getCourseClass().getId());
     }
+
+    @Test
+    void findClassesWithOverridesUsesOverriddenDatesInFilter() {
+        classOverrideRepository.save(ClassOverride.builder()
+                .user(2L)
+                .courseClass(classB)
+                .startsAtOverride(LocalDateTime.of(2026, 11, 22, 10, 0))
+                .endsAtOverride(LocalDateTime.of(2026, 11, 22, 11, 20))
+                .isHidden(false)
+                .build());
+
+        LocalDateTime from = LocalDateTime.of(2026, 11, 22, 9, 0);
+        LocalDateTime to = LocalDateTime.of(2026, 11, 22, 12, 0);
+
+        List<CourseClassWithOverride> result = calendarRepository.findClassesWithOverrides(2L, from, to);
+
+        assertEquals(1, result.size());
+        assertEquals(classB.getId(), result.getFirst().getCourseClass().getId());
+    }
 }

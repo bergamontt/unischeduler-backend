@@ -1,7 +1,10 @@
 package ua.edu.ukma.unischeduler.common.exceptions;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import java.time.Instant;
 
@@ -38,5 +41,31 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", result.getTitle());
         assertEquals("An unexpected error occurred", result.getDetail());
         assertInstanceOf(Instant.class, result.getProperties().get("timestamp"));
+    }
+
+    @Test
+    void dataIntegrityViolationReturns409() {
+        ProblemDetail result = handler.handleDataIntegrityViolation(new DataIntegrityViolationException("fk violation"));
+
+        assertEquals(409, result.getStatus());
+        assertEquals("Conflict", result.getTitle());
+        assertInstanceOf(Instant.class, result.getProperties().get("timestamp"));
+    }
+
+    @Test
+    void accessDeniedReturns403() {
+        ProblemDetail result = handler.handleAccessDeniedException(new AccessDeniedException("Forbidden"));
+
+        assertEquals(403, result.getStatus());
+        assertEquals("Forbidden", result.getTitle());
+        assertEquals("Access denied", result.getDetail());
+    }
+
+    @Test
+    void methodNotSupportedReturns405() {
+        ProblemDetail result = handler.handleMethodNotSupported(new HttpRequestMethodNotSupportedException("PATCH"));
+
+        assertEquals(405, result.getStatus());
+        assertEquals("Method Not Allowed", result.getTitle());
     }
 }

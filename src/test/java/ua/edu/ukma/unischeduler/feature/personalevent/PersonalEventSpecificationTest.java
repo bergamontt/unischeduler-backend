@@ -45,10 +45,14 @@ class PersonalEventSpecificationTest {
     }
 
     @Test
-    void hasUserIdDoesNotFilterWhenUserIdIsNull() {
-        assertNull(PersonalEventSpecification.hasUserId(null).toPredicate(root, null, criteriaBuilder));
+    void hasUserIdReturnsDisjunctionWhenUserIdIsNull() {
+        when(criteriaBuilder.disjunction()).thenReturn(predicate);
 
-        verifyNoInteractions(root, criteriaBuilder);
+        Predicate result = PersonalEventSpecification.hasUserId(null).toPredicate(root, null, criteriaBuilder);
+
+        assertSame(predicate, result);
+        verify(criteriaBuilder).disjunction();
+        verifyNoInteractions(root);
     }
 
     @Test
@@ -112,10 +116,13 @@ class PersonalEventSpecificationTest {
     }
 
     @Test
-    void buildDoesNotFilterWhenAllFieldsAreNull() {
+    void buildReturnsDisjunctionWhenUserIdIsNull() {
+        when(criteriaBuilder.disjunction()).thenReturn(predicate);
+
         Predicate result = PersonalEventSpecification.build(new CalendarEventFilterDto()).toPredicate(root, null, criteriaBuilder);
 
-        assertNull(result);
-        verifyNoInteractions(root, criteriaBuilder);
+        assertSame(predicate, result);
+        verify(criteriaBuilder).disjunction();
+        verifyNoInteractions(root);
     }
 }
