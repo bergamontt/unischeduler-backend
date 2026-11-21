@@ -16,7 +16,8 @@ public interface CalendarRepository extends JpaRepository<CourseClass, Long> {
                ON co.courseClass = cc
               AND cast(:userId as Long) IS NOT NULL
               AND co.user = :userId
-        WHERE (co IS NULL OR co.isHidden = false)
+        WHERE cc.archived = false
+          AND (co IS NULL OR co.isHidden = false)
           AND (cast(:startsAt as timestamp) IS NULL OR cc.endsAt >= :startsAt)
           AND (cast(:endsAt as timestamp) IS NULL OR cc.startsAt <= :endsAt)
     """)
