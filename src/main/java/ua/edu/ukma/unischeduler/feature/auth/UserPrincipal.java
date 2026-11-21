@@ -3,6 +3,7 @@ package ua.edu.ukma.unischeduler.feature.auth;
 import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -64,5 +65,15 @@ public class UserPrincipal implements OidcUser, Serializable {
     @Override
     public String getName() {
         return email;
+    }
+
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
+
+    public void verifyOwnership(Long ownerId) {
+        if (!isAdmin() && !id.equals(ownerId)) {
+            throw new AccessDeniedException("Access denied");
+        }
     }
 }

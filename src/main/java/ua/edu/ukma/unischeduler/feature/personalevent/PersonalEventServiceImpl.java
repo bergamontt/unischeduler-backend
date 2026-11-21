@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
 import ua.edu.ukma.unischeduler.feature.user.UserRepository;
 
 import java.util.List;
@@ -14,13 +15,16 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     private final UserRepository userRepository;
     private final PersonalEventRepository personalEventRepository;
     private final PersonalEventMapper personalEventMapper;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional
     public PersonalEventResponseDto create(PersonalEventCreateDto dto) {
-        PersonalEvent personalEvent = personalEventMapper.toEntity(dto);
-        if (!userRepository.existsById(dto.getUserId()))
+        Long userId = currentUserService.resolveUserId(dto.getUserId());
+        if (!userRepository.existsById(userId))
             throw new ResourceNotFoundException("User not found");
+        PersonalEvent personalEvent = personalEventMapper.toEntity(dto);
+        personalEvent.setUserId(userId);
         PersonalEvent saved = personalEventRepository.save(personalEvent);
         return personalEventMapper.toDto(saved);
     }
@@ -30,14 +34,17 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     public PersonalEventResponseDto findById(Long id) {
        PersonalEvent found = personalEventRepository.findById(id)
                .orElseThrow(() -> new ResourceNotFoundException("Personal event not found"));
+       currentUserService.verifyOwnership(found.getUserId());
        return personalEventMapper.toDto(found);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<PersonalEventResponseDto> findAll() {
-        return personalEventRepository.findAll()
-                .stream()
+        List<PersonalEvent> events = currentUserService.isAdmin()
+                ? personalEventRepository.findAll()
+                : personalEventRepository.findAllByUserId(currentUserService.getCurrentUser().getId());
+        return events.stream()
                 .map(personalEventMapper::toDto)
                 .toList();
     }
@@ -47,6 +54,7 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     public PersonalEventResponseDto update(PersonalEventUpdateDto dto) {
         PersonalEvent found = personalEventRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Personal event not found"));
+        currentUserService.verifyOwnership(found.getUserId());
         personalEventMapper.update(dto, found);
         PersonalEvent saved = personalEventRepository.save(found);
         return personalEventMapper.toDto(saved);
@@ -55,8 +63,9 @@ public class PersonalEventServiceImpl implements PersonalEventService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!personalEventRepository.existsById(id))
-            throw new ResourceNotFoundException("Personal event not found");
-        personalEventRepository.deleteById(id);
+        PersonalEvent found = personalEventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Personal event not found"));
+        currentUserService.verifyOwnership(found.getUserId());
+        personalEventRepository.delete(found);
     }
 }

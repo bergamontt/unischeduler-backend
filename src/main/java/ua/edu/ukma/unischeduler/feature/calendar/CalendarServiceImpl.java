@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.edu.ukma.unischeduler.feature.auth.CurrentUserService;
 import ua.edu.ukma.unischeduler.feature.personalevent.PersonalEvent;
 import ua.edu.ukma.unischeduler.feature.personalevent.PersonalEventRepository;
 import ua.edu.ukma.unischeduler.feature.personalevent.PersonalEventSpecification;
@@ -18,10 +19,14 @@ public class CalendarServiceImpl implements CalendarService {
     private final CalendarRepository calendarRepository;
     private final PersonalEventRepository personalEventRepository;
     private final CalendarEventMapper calendarEventMapper;
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional(readOnly = true)
     public List<CalendarEvent> findAll(CalendarEventFilterDto filter) {
+        if (filter.getUserId() != null) {
+            currentUserService.verifyOwnership(filter.getUserId());
+        }
         List<CalendarEvent> classEvents = calendarRepository.findClassesWithOverrides(
                         filter.getUserId(),
                         filter.getStartsAt(),
