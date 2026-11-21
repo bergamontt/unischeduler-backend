@@ -37,3 +37,4 @@ It is created personally for the user that wants to override some data in the `C
 `CalendarEvent` is a projection of `CourseClass`, `ClassOverride` and `PersonalEvent` classes.
 This class is used in the `CalendarController` and `CalendarService` to represent a general event of the user's calendar;
 
+`AcademicPeriod` is a singleton entity that contains data about the current academic period.
