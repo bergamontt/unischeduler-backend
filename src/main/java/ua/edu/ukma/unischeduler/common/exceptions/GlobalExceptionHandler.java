@@ -50,6 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDeniedException(AccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage());
         return buildProblem(HttpStatus.FORBIDDEN, "Forbidden", "Access denied");
     }
 
@@ -60,6 +61,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.error("Data integrity violation: ", ex);
         return buildProblem(HttpStatus.CONFLICT, "Conflict",
                 "Operation conflicts with existing data or references");
     }

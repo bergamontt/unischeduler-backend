@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverrideRepository;
+import ua.edu.ukma.unischeduler.feature.courseclass.CourseClass;
+import ua.edu.ukma.unischeduler.feature.courseclass.CourseClassRepository;
 import ua.edu.ukma.unischeduler.feature.speciality.Speciality;
 import ua.edu.ukma.unischeduler.feature.speciality.SpecialityRepository;
+import ua.edu.ukma.unischeduler.feature.studentcourse.StudentCourseRepository;
 
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +20,9 @@ import java.util.Set;
 public class CourseServiceImpl implements CourseService {
     private final SpecialityRepository specialityRepository;
     private final CourseRepository courseRepository;
+    private final CourseClassRepository courseClassRepository;
+    private final ClassOverrideRepository classOverrideRepository;
+    private final StudentCourseRepository studentCourseRepository;
     private final CourseMapper courseMapper;
 
     @Override
@@ -62,8 +69,24 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!courseRepository.existsById(id))
-            throw new ResourceNotFoundException("Course not found");
-        courseRepository.deleteById(id);
+        Course found = courseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+
+        // 1. Delete student course enrollments
+        studentCourseRepository.deleteAllByCourseId(id);
+
+        // 2. Delete classes of this course and their class overrides
+        List<CourseClass> classes = courseClassRepository.findAllByCourseId(id);
+        for (CourseClass cls : classes) {
+            classOverrideRepository.deleteAllByCourseClassId(cls.getId());
+        }
+        courseClassRepository.deleteAll(classes);
+
+        // 3. Clear specialities association (removes rows from course_speciality)
+        found.getSpecialities().clear();
+        courseRepository.save(found);
+
+        // 4. Delete the course
+        courseRepository.delete(found);
     }
 }

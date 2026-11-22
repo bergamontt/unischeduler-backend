@@ -15,6 +15,7 @@ services:
       retries: 10
     volumes:
       - unischeduler-db-data:/var/lib/postgresql
+      - ./sql:/docker-entrypoint-initdb.d:ro
     networks:
       - unischeduler-network
 
@@ -33,6 +34,7 @@ services:
       AZURE_TENANT_ID: ${AZURE_TENANT_ID}
       FRONTEND_URL: ${FRONTEND_URL}
       ALLOWED_EMAIL_DOMAIN: ${ALLOWED_EMAIL_DOMAIN}
+      APP_ADMIN_EMAILS: ${APP_ADMIN_EMAILS:-ir.hryshchenko@ukma.edu.ua,admin@ukma.edu.ua}
       UNISCHEDULER_IMPORT_ENABLED: ${UNISCHEDULER_IMPORT_ENABLED:-false}
       UNISCHEDULER_IMPORT_TOKEN: ${UNISCHEDULER_IMPORT_TOKEN:-}
     ports:

@@ -7,12 +7,15 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
-import java.util.Set;
+import ua.edu.ukma.unischeduler.feature.classoverride.ClassOverrideRepository;
+import ua.edu.ukma.unischeduler.feature.courseclass.CourseClassRepository;
 import ua.edu.ukma.unischeduler.feature.speciality.Speciality;
 import ua.edu.ukma.unischeduler.feature.speciality.SpecialityRepository;
+import ua.edu.ukma.unischeduler.feature.studentcourse.StudentCourseRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,11 +29,27 @@ class CourseServiceImplTest {
     @Mock
     private CourseRepository courseRepository;
 
+    @Mock
+    private CourseClassRepository courseClassRepository;
+
+    @Mock
+    private ClassOverrideRepository classOverrideRepository;
+
+    @Mock
+    private StudentCourseRepository studentCourseRepository;
+
     private CourseServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new CourseServiceImpl(specialityRepository, courseRepository, Mappers.getMapper(CourseMapper.class));
+        service = new CourseServiceImpl(
+                specialityRepository,
+                courseRepository,
+                courseClassRepository,
+                classOverrideRepository,
+                studentCourseRepository,
+                Mappers.getMapper(CourseMapper.class)
+        );
     }
 
     @Test
@@ -117,21 +136,24 @@ class CourseServiceImplTest {
 
     @Test
     void deleteRemovesExistingCourse() {
-        when(courseRepository.existsById(1L)).thenReturn(true);
+        Course existing = Course.builder().id(1L).name("Algorithms").build();
+        when(courseRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(courseClassRepository.findAllByCourseId(1L)).thenReturn(List.of());
 
         service.delete(1L);
 
-        verify(courseRepository).deleteById(1L);
+        verify(studentCourseRepository).deleteAllByCourseId(1L);
+        verify(courseClassRepository).deleteAll(List.of());
+        verify(courseRepository).delete(existing);
     }
 
     @Test
     void deleteThrowsWhenCourseDoesNotExist() {
-        when(courseRepository.existsById(1L)).thenReturn(false);
+        when(courseRepository.findById(1L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
 
         assertEquals("Course not found", exception.getMessage());
-        verify(courseRepository, never()).deleteById(any());
+        verify(courseRepository, never()).delete(any());
     }
 }
-

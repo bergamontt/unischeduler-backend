@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
+import ua.edu.ukma.unischeduler.feature.course.CourseRepository;
+import ua.edu.ukma.unischeduler.feature.course.CourseService;
 
 import java.util.List;
 
@@ -12,6 +14,8 @@ import java.util.List;
 public class SpecialityServiceImpl implements SpecialityService {
     private final SpecialityRepository specialityRepository;
     private final SpecialityMapper specialityMapper;
+    private final CourseRepository courseRepository;
+    private final CourseService courseService;
 
     @Override
     @Transactional
@@ -53,7 +57,18 @@ public class SpecialityServiceImpl implements SpecialityService {
     public void delete(Long id) {
         if (!specialityRepository.existsById(id))
             throw new ResourceNotFoundException("Speciality not found");
-        specialityRepository.deleteById(id);
-        specialityRepository.flush();
+
+        // 1. Delete all courses associated with this speciality
+        List<Long> courseIds = courseRepository.findCourseIdsBySpecialityId(id);
+        for (Long courseId : courseIds) {
+            courseService.delete(courseId);
+        }
+
+        // 2. Unlink any remaining associations and remove the speciality
+        specialityRepository.deleteCourseSpecialityLinks(id);
+        specialityRepository.unlinkUsers(id);
+        specialityRepository.unlinkImportScopesFromClasses(id);
+        specialityRepository.deleteImportScopes(id);
+        specialityRepository.deleteSpecialityByIdNative(id);
     }
 }
