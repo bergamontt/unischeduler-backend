@@ -20,7 +20,7 @@ public interface CalendarEventMapper {
     @Mapping(target = "eventId", source = "id")
     @Mapping(target = "eventType", constant = "COURSE_CLASS")
     @Mapping(target = "name", source = "course.name")
-    @Mapping(target = "description", ignore = true)
+    @Mapping(target = "description", source = "description")
     CalendarEvent toCalendarEvent(CourseClass courseClass);
 
     @Mapping(target = "eventId", source = "id")

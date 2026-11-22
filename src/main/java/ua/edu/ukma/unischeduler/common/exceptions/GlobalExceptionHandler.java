@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 
@@ -35,6 +37,15 @@ public class GlobalExceptionHandler {
     })
     public ProblemDetail handleBadRequestException(Exception ex) {
         return buildProblem(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
+    }
+
+    // Keep explicit HTTP statuses (including invalid import tokens) intact.
+    // The generic Exception handler below would otherwise turn them into 500.
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ProblemDetail> handleResponseStatusException(ResponseStatusException ex) {
+        ProblemDetail problem = ex.getBody();
+        problem.setProperty("timestamp", Instant.now());
+        return ResponseEntity.status(ex.getStatusCode()).body(problem);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
