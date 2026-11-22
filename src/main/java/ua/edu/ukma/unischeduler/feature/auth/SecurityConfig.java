@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -30,6 +31,7 @@ import java.util.List;
 public class SecurityConfig {
     private final CustomOidcUserService customOidcUserService;
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final UserRoleSyncFilter userRoleSyncFilter;
 
     @Value("${app.cors.allowed-origins}")
     private List<String> allowedOrigins;
@@ -47,6 +49,7 @@ public class SecurityConfig {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(userRoleSyncFilter, AuthorizationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/oauth2/**", "/login/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/academic-period", "/academic-period/**").permitAll()
@@ -55,9 +58,22 @@ public class SecurityConfig {
                         // Do not grant this token permissions on other admin endpoints.
                         .requestMatchers(HttpMethod.POST, "/admin/schedule-imports/replace").permitAll()
                         .requestMatchers("/user", "/user/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/course/**", "/class/**", "/speciality/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/course/**", "/class/**", "/speciality/**", "/academic-period/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/course/**", "/class/**", "/speciality/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,
+                                "/course", "/course/**",
+                                "/class", "/class/**",
+                                "/speciality", "/speciality/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,
+                                "/course", "/course/**",
+                                "/class", "/class/**",
+                                "/speciality", "/speciality/**",
+                                "/academic-period", "/academic-period/**"
+                        ).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/course", "/course/**",
+                                "/class", "/class/**",
+                                "/speciality", "/speciality/**"
+                        ).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,
                                 "/course", "/course/**",
                                 "/class", "/class/**",

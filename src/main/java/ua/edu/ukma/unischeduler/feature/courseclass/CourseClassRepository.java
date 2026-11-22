@@ -6,4 +6,8 @@ import java.util.List;
 
 public interface CourseClassRepository extends JpaRepository<CourseClass, Long> {
     List<CourseClass> findAllByImportScope_Id(Long importScopeId);
+
+    List<CourseClass> findAllByCourseId(Long courseId);
+
+    void deleteAllByCourseId(Long courseId);
 }

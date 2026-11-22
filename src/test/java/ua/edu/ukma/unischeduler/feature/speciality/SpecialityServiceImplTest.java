@@ -7,7 +7,8 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ua.edu.ukma.unischeduler.common.exceptions.ResourceNotFoundException;
-
+import ua.edu.ukma.unischeduler.feature.course.CourseRepository;
+import ua.edu.ukma.unischeduler.feature.course.CourseService;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +22,22 @@ class SpecialityServiceImplTest {
     @Mock
     private SpecialityRepository specialityRepository;
 
+    @Mock
+    private CourseRepository courseRepository;
+
+    @Mock
+    private CourseService courseService;
+
     private SpecialityServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new SpecialityServiceImpl(specialityRepository, Mappers.getMapper(SpecialityMapper.class));
+        service = new SpecialityServiceImpl(
+                specialityRepository,
+                Mappers.getMapper(SpecialityMapper.class),
+                courseRepository,
+                courseService
+        );
     }
 
     @Test
@@ -104,12 +116,15 @@ class SpecialityServiceImplTest {
     }
 
     @Test
-    void deleteRemovesExistingSpeciality() {
+    void deleteRemovesExistingSpecialityAndItsCourses() {
         when(specialityRepository.existsById(1L)).thenReturn(true);
+        when(courseRepository.findCourseIdsBySpecialityId(1L)).thenReturn(List.of(10L, 20L));
 
         service.delete(1L);
 
-        verify(specialityRepository).deleteById(1L);
+        verify(courseService).delete(10L);
+        verify(courseService).delete(20L);
+        verify(specialityRepository).deleteSpecialityByIdNative(1L);
     }
 
     @Test
@@ -119,7 +134,6 @@ class SpecialityServiceImplTest {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
 
         assertEquals("Speciality not found", exception.getMessage());
-        verify(specialityRepository, never()).deleteById(any());
+        verify(specialityRepository, never()).deleteSpecialityByIdNative(any());
     }
 }
-
