@@ -82,10 +82,11 @@ class SecurityIntegrationTest {
                 .role(UserRole.STUDENT)
                 .build());
 
-        admin = userRepository.save(User.builder()
-                .email("admin@ukma.edu.ua")
-                .role(UserRole.ADMIN)
-                .build());
+        admin = userRepository.findByEmail("admin@ukma.edu.ua")
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email("admin@ukma.edu.ua")
+                        .role(UserRole.ADMIN)
+                        .build()));
 
         otherStudentEvent = personalEventRepository.save(PersonalEvent.builder()
                 .userId(otherStudent.getId())

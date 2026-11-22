@@ -15,6 +15,7 @@ import ua.edu.ukma.unischeduler.common.enums.UserRole;
 import ua.edu.ukma.unischeduler.feature.user.User;
 import ua.edu.ukma.unischeduler.feature.user.UserRepository;
 
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -26,6 +27,16 @@ public class CustomOidcUserService extends OidcUserService {
     @Value("${app.auth.allowed-email-domain:ukma.edu.ua}")
     private @Nullable String allowedEmailDomain;
 
+    @Value("${app.auth.admin-emails:ir.hryshchenko@ukma.edu.ua,admin@ukma.edu.ua}")
+    private List<String> adminEmails = List.of();
+
+    private boolean isAdminEmail(String email) {
+        String cleanEmail = email.trim().toLowerCase(Locale.ROOT);
+        return adminEmails.stream()
+                .map(e -> e.trim().toLowerCase(Locale.ROOT))
+                .anyMatch(cleanEmail::equals);
+    }
+
     @Override
     @Transactional
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
@@ -33,10 +44,19 @@ public class CustomOidcUserService extends OidcUserService {
         String email = extractEmail(oidcUser);
         validateDomain(email);
 
+        UserRole targetRole = isAdminEmail(email) ? UserRole.ADMIN : UserRole.STUDENT;
+
         User user = userRepository.findByEmail(email)
+                .map(existing -> {
+                    if (targetRole == UserRole.ADMIN && existing.getRole() != UserRole.ADMIN) {
+                        existing.setRole(UserRole.ADMIN);
+                        return userRepository.save(existing);
+                    }
+                    return existing;
+                })
                 .orElseGet(() -> userRepository.save(User.builder()
                         .email(email)
-                        .role(UserRole.STUDENT)
+                        .role(targetRole)
                         .build()));
 
         return new UserPrincipal(user.getId(), user.getEmail(), user.getRole(), oidcUser);
